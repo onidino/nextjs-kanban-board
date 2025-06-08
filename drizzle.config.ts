@@ -1,17 +1,16 @@
-import type { Config } from 'drizzle-kit';
+import { defineConfig } from "drizzle-kit";
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-export default {
-  schema: './src/db/schema.ts',
-  out: './drizzle',
+if (!process.env.DB_URL) {
+  throw new Error('DB_URL environment variable is not set');
+}
+
+export default defineConfig({
+  schema: "./src/lib/db/schema.ts",
+  out: "./drizzle",
   dialect: 'postgresql',
   dbCredentials: {
-    host: 'localhost',
-    port: 5432,
-    user: 'postgres',
-    password: 'postgres',
-    database: 'nextjs_cursor_db',
-    ssl: false,
-  },
-} satisfies Config; 
+    url: process.env.DB_URL,
+  }
+}); 
