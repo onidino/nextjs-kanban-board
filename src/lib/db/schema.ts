@@ -13,6 +13,7 @@ export const tasks = pgTable('tasks', {
   description:  text('description'),
   columnId:     integer('column_id').references(() => columns.id).notNull(),
   order:        integer('order').notNull().default(0),
+  assignee:     varchar('assignee', { length: 255 }),
   createdAt:    timestamp('created_at').defaultNow().notNull(),
   updatedAt:    timestamp('updated_at').defaultNow().notNull(),
 });

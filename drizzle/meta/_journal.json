@@ -15,6 +15,13 @@
       "when": 1749425520843,
       "tag": "0001_handy_loa",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1749429146493,
+      "tag": "0002_wandering_sally_floyd",
+      "breakpoints": true
     }
   ]
 }

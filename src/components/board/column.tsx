@@ -1,5 +1,3 @@
-'use server';
-
 import { Card } from '@/components/ui/card';
 import { Task } from './task';
 import { AddTask } from './add-task';
