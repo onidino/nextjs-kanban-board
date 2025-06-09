@@ -1,12 +1,15 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
-import { neon } from '@neondatabase/serverless';
+import postgres from 'postgres';
 import * as schema from './schema';
 
-const connectionString = process.env.DB_URL!;
+if (!process.env.DB_URL) {
+  throw new Error('DB_URL environment variable is not set');
+}
 
-// Connection for migrations
-export const migrationClient = neon(connectionString);
+const connectionString = process.env.DB_URL;
 
 // Connection for queries
-const queryClient = neon(connectionString);
-export const db = drizzle(queryClient, { schema }); 
+const client = postgres(connectionString);
+const db = drizzle(client, { schema });
+
+export { db }; 

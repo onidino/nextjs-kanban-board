@@ -15,4 +15,8 @@ export const tasks = pgTable('tasks', {
   order:        integer('order').notNull().default(0),
   createdAt:    timestamp('created_at').defaultNow().notNull(),
   updatedAt:    timestamp('updated_at').defaultNow().notNull(),
-}); 
+});
+
+// Types for TypeScript
+export type Column = typeof columns.$inferSelect;
+export type Task = typeof tasks.$inferSelect; 
