@@ -1,5 +1,5 @@
 import { getColumns, getTasks } from '@/lib/actions/board';
-import { Column, AddColumn } from '.';
+import { Column } from '.';
 
 export async function Board() {
   try {
@@ -40,7 +40,6 @@ export async function Board() {
             />
           ))}
         </div>
-        <AddColumn />
       </div>
     );
   } catch (error) {
