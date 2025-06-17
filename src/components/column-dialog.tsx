@@ -53,6 +53,10 @@ export function ColumnDialog({ column, onColumnUpdate, trigger }: ColumnDialogPr
       form.reset({
         title: column?.title || "",
       });
+    } else {
+      form.reset({
+        title: "",
+      });
     }
   }, [open, column, form]);
 
@@ -75,6 +79,10 @@ export function ColumnDialog({ column, onColumnUpdate, trigger }: ColumnDialogPr
 
         if (newColumn.error) {
           throw new Error(newColumn.error);
+        }
+
+        if (newColumn.data && onColumnUpdate) {
+          onColumnUpdate(newColumn.data);
         }
 
         toast.success("Column created successfully");
