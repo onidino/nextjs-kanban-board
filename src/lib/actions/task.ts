@@ -78,7 +78,7 @@ export async function updateTask(taskId: number, values: TaskFormValues) {
       .returning();
 
     // Revalidate the board page
-    revalidatePath('/board/[boardId]', 'page');
+    revalidatePath('/board');
 
     return { data: updatedTask, error: null };
   } catch (error) {
