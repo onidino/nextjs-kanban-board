@@ -7,6 +7,18 @@ import { type Task as TaskType } from '@/lib/db/schema';
 import { Button } from '@/components/ui/button';
 import { PencilIcon } from 'lucide-react';
 import { TaskDialog } from '@/components/task-dialog';
+import { updateTask, updateTaskAssignee } from '@/lib/actions/task';
+import { toast } from 'sonner';
+import { z } from 'zod';
+
+const taskFormSchema = z.object({
+  title: z.string().min(1, "Title is required").max(100, "Title is too long"),
+  description: z.string().min(1, "Description is required").max(500, "Description is too long"),
+  assignee: z.string().min(1, "Assignee is required"),
+  columnId: z.number().min(1, "Column ID is required"),
+});
+
+type TaskFormValues = z.infer<typeof taskFormSchema>;
 
 interface TaskProps {
   task: TaskType;
@@ -26,6 +38,24 @@ export function Task({ task }: TaskProps) {
     }
   };
 
+  const handleAssigneeChange = async (assignee: string) => {
+    const { error } = await updateTaskAssignee(task.id, assignee);
+    if (error) {
+      toast.error(error);
+    }
+  };
+
+  const handleTaskUpdate = async (values: TaskFormValues) => {
+    const { error } = await updateTask(task.id, {
+      ...values,
+      columnId: task.columnId,
+    });
+    
+    if (error) {
+      toast.error(error);
+    }
+  };
+
   return (
     <Card className="flex flex-col gap-2 p-3">
       <div className="flex justify-between items-start">
@@ -33,15 +63,11 @@ export function Task({ task }: TaskProps) {
         <div className="flex items-center gap-2">
           <AssigneeSelect
             task={taskForAssignee}
-            onAssigneeChange={(assignee) => {
-              console.log('Assignee changed:', assignee);
-            }}
+            onAssigneeChange={handleAssigneeChange}
           />
           <TaskDialog
             task={taskForAssignee}
-            onSubmit={(values) => {
-              console.log('Task updated:', values);
-            }}
+            columnId={task.columnId}
             trigger={
               <Button variant="ghost" size="icon">
                 <PencilIcon className="h-4 w-4" />

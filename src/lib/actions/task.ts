@@ -53,4 +53,50 @@ export async function createTask(values: TaskFormValues) {
     }
     return { data: null, error: "Failed to create task" };
   }
+}
+
+export async function updateTask(taskId: number, values: TaskFormValues) {
+  try {
+    // Validate the input
+    const validatedData = taskFormSchema.parse(values);
+
+    // Update the task
+    const [updatedTask] = await db
+      .update(tasks)
+      .set({
+        title: validatedData.title,
+        description: validatedData.description,
+        assignee: validatedData.assignee,
+        columnId: validatedData.columnId,
+      })
+      .where(eq(tasks.id, taskId))
+      .returning();
+
+    // Revalidate the board page
+    revalidatePath('/board/[boardId]', 'page');
+
+    return { data: updatedTask, error: null };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { data: null, error: error.errors[0].message };
+    }
+    return { data: null, error: "Failed to update task" };
+  }
+}
+
+export async function updateTaskAssignee(taskId: number, assignee: string) {
+  try {
+    const [updatedTask] = await db
+      .update(tasks)
+      .set({ assignee })
+      .where(eq(tasks.id, taskId))
+      .returning();
+
+    // Revalidate the board page
+    revalidatePath('/board/[boardId]', 'page');
+
+    return { data: updatedTask, error: null };
+  } catch (error) {
+    return { data: null, error: "Failed to update task assignee" };
+  }
 } 
