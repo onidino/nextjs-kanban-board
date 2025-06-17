@@ -8,7 +8,7 @@ interface ColumnProps {
   tasks: TaskType[];
 }
 
-export async function Column({ column, tasks }: ColumnProps) {
+export function Column({ column, tasks }: ColumnProps) {
   return (
     <Card className="flex h-full w-[350px] flex-col gap-3 p-4">
       <div className="flex items-center justify-between">
