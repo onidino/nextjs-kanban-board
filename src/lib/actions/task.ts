@@ -6,8 +6,9 @@ import { tasks } from "../db/schema";
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 
+// Using the schema from schema.ts
 const taskFormSchema = z.object({
-  title: z.string().min(1, "Title is required").max(100, "Title is too long"),
+  title: z.string().min(1, "Title is required").max(255, "Title is too long"),
   description: z.string().min(1, "Description is required").max(500, "Description is too long"),
   assignee: z.string().min(1, "Assignee is required"),
   columnId: z.number().min(1, "Column ID is required"),
@@ -27,19 +28,23 @@ export async function createTask(values: TaskFormValues) {
       .where(eq(tasks.columnId, validatedData.columnId))
       .orderBy(tasks.order);
 
+    // Calculate the new order (highest order + 1, or 0 if no tasks)
     const newOrder = existingTasks.length > 0 
       ? Math.max(...existingTasks.map(t => t.order)) + 1 
       : 0;
 
-    // Create the task
+    // Create the task with all required fields from the schema
     const [newTask] = await db
       .insert(tasks)
       .values({
+        // Required fields from schema
         title: validatedData.title,
-        description: validatedData.description,
-        assignee: validatedData.assignee,
         columnId: validatedData.columnId,
         order: newOrder,
+        // Optional fields
+        description: validatedData.description,
+        assignee: validatedData.assignee,
+        // Timestamps are handled by the database defaults
       })
       .returning();
 

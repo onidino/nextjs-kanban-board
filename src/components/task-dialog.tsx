@@ -38,7 +38,7 @@ import { type Task } from "./assignee-select"
 import { assignees, type Assignee } from "@/lib/assignees"
 
 const taskFormSchema = z.object({
-  title: z.string().min(1, "Title is required").max(100, "Title is too long"),
+  title: z.string().min(1, "Title is required").max(255, "Title is too long"),
   description: z.string().min(1, "Description is required").max(500, "Description is too long"),
   assignee: z.string().min(1, "Assignee is required"),
   columnId: z.number().min(1, "Column ID is required"),

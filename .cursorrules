@@ -6,3 +6,5 @@
 - It's Next.js so use Server Components when possibleAdd commentMore actions
 - Use server actions when possible
 - Use Next.js 15
+- If you are generating validation schemas, forms, actions, working with the db, then ALWAYS use the database from @lib/db/schema.ts as a SINGLE SOURCE OF TRUTH.
+- NEVER MODIFY OR REMOVE ANYTHING FROM THE DATABASE SCHEMA, UNLESS I EXPLICITLY TELL YOU TO DO SO.

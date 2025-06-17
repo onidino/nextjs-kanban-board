@@ -9,16 +9,6 @@ import { PencilIcon } from 'lucide-react';
 import { TaskDialog } from '@/components/task-dialog';
 import { updateTask, updateTaskAssignee } from '@/lib/actions/task';
 import { toast } from 'sonner';
-import { z } from 'zod';
-
-const taskFormSchema = z.object({
-  title: z.string().min(1, "Title is required").max(100, "Title is too long"),
-  description: z.string().min(1, "Description is required").max(500, "Description is too long"),
-  assignee: z.string().min(1, "Assignee is required"),
-  columnId: z.number().min(1, "Column ID is required"),
-});
-
-type TaskFormValues = z.infer<typeof taskFormSchema>;
 
 interface TaskProps {
   task: TaskType;
@@ -45,7 +35,7 @@ export function Task({ task }: TaskProps) {
     }
   };
 
-  const handleTaskUpdate = async (values: TaskFormValues) => {
+  const handleTaskUpdate = async (values: any) => {
     const { error } = await updateTask(task.id, {
       ...values,
       columnId: task.columnId,
