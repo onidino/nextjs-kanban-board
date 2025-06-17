@@ -7,6 +7,7 @@ import { type Task as TaskType } from '@/lib/db/schema';
 import { Button } from '@/components/ui/button';
 import { PencilIcon } from 'lucide-react';
 import { TaskDialog } from '@/components/task-dialog';
+
 import { updateTask, updateTaskAssignee } from '@/lib/actions/task';
 import { toast } from 'sonner';
 
@@ -45,7 +46,7 @@ export function Task({ task }: TaskProps) {
       toast.error(error);
     }
   };
-
+      
   return (
     <Card className="flex flex-col gap-2 p-3">
       <div className="flex justify-between items-start">
@@ -58,6 +59,7 @@ export function Task({ task }: TaskProps) {
           <TaskDialog
             task={taskForAssignee}
             columnId={task.columnId}
+
             trigger={
               <Button variant="ghost" size="icon">
                 <PencilIcon className="h-4 w-4" />
