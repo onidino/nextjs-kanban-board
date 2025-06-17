@@ -1,0 +1,56 @@
+'use server';
+
+import { z } from "zod";
+import { db } from "../db";
+import { tasks } from "../db/schema";
+import { revalidatePath } from "next/cache";
+import { eq } from "drizzle-orm";
+
+const taskFormSchema = z.object({
+  title: z.string().min(1, "Title is required").max(100, "Title is too long"),
+  description: z.string().min(1, "Description is required").max(500, "Description is too long"),
+  assignee: z.string().min(1, "Assignee is required"),
+  columnId: z.number().min(1, "Column ID is required"),
+});
+
+type TaskFormValues = z.infer<typeof taskFormSchema>;
+
+export async function createTask(values: TaskFormValues) {
+  try {
+    // Validate the input
+    const validatedData = taskFormSchema.parse(values);
+
+    // Get the highest order in the column
+    const existingTasks = await db
+      .select()
+      .from(tasks)
+      .where(eq(tasks.columnId, validatedData.columnId))
+      .orderBy(tasks.order);
+
+    const newOrder = existingTasks.length > 0 
+      ? Math.max(...existingTasks.map(t => t.order)) + 1 
+      : 0;
+
+    // Create the task
+    const [newTask] = await db
+      .insert(tasks)
+      .values({
+        title: validatedData.title,
+        description: validatedData.description,
+        assignee: validatedData.assignee,
+        columnId: validatedData.columnId,
+        order: newOrder,
+      })
+      .returning();
+
+    // Revalidate the board page
+    revalidatePath('/board/[boardId]', 'page');
+
+    return { data: newTask, error: null };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { data: null, error: error.errors[0].message };
+    }
+    return { data: null, error: "Failed to create task" };
+  }
+} 
