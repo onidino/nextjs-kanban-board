@@ -49,7 +49,7 @@ export async function createTask(values: TaskFormValues) {
       .returning();
 
     // Revalidate the board page
-    revalidatePath('/board/[boardId]', 'page');
+    revalidatePath('/', 'page');
 
     return { data: newTask, error: null };
   } catch (error) {
@@ -77,8 +77,8 @@ export async function updateTask(taskId: number, values: TaskFormValues) {
       .where(eq(tasks.id, taskId))
       .returning();
 
-    // Revalidate the board page with specific path
-    revalidatePath('/board/[boardId]', 'page');
+    // Revalidate the board page
+    revalidatePath('/', 'page');
 
     return { data: updatedTask, error: null };
   } catch (error) {
@@ -98,7 +98,7 @@ export async function updateTaskAssignee(taskId: number, assignee: string) {
       .returning();
 
     // Revalidate the board page
-    revalidatePath('/board/[boardId]', 'page');
+    revalidatePath('/', 'page');
 
     return { data: updatedTask, error: null };
   } catch (error) {
@@ -112,7 +112,7 @@ export async function deleteTask(taskId: number) {
     await db.delete(tasks).where(eq(tasks.id, taskId));
 
     // Revalidate the board page
-    revalidatePath('/board/[boardId]', 'page');
+    revalidatePath('/', 'page');
 
     return { error: null };
   } catch (error) {

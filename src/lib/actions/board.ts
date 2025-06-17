@@ -55,7 +55,7 @@ export async function createColumn(values: ColumnFormValues) {
       .returning();
 
     // Revalidate the board page
-    revalidatePath('/board/[boardId]', 'page');
+    revalidatePath('/', 'page');
 
     return { data: newColumn, error: null };
   } catch (error) {
@@ -98,7 +98,7 @@ export async function updateColumn(columnId: number, values: ColumnFormValues) {
       .returning();
 
     // Revalidate the board page
-    revalidatePath('/board/[boardId]', 'page');
+    revalidatePath('/', 'page');
 
     return { data: updatedColumn, error: null };
   } catch (error) {
@@ -107,5 +107,40 @@ export async function updateColumn(columnId: number, values: ColumnFormValues) {
     }
     console.error('Error updating column:', error);
     return { data: null, error: "Failed to update column" };
+  }
+}
+
+export async function deleteColumn(columnId: number) {
+  try {
+    // First check if the column has any tasks
+    const columnTasks = await db
+      .select()
+      .from(tasks)
+      .where(eq(tasks.columnId, columnId));
+
+    if (columnTasks.length > 0) {
+      return { error: "Cannot delete column with existing tasks" };
+    }
+
+    // Delete the column
+    const [deletedColumn] = await db
+      .delete(columns)
+      .where(eq(columns.id, columnId))
+      .returning();
+
+    if (!deletedColumn) {
+      return { error: "Column not found" };
+    }
+
+    // Revalidate the board page
+    revalidatePath('/', 'page');
+
+    return { data: deletedColumn, error: null };
+  } catch (error) {
+    console.error('Error deleting column:', error);
+    if (error instanceof Error) {
+      return { error: error.message };
+    }
+    return { error: "Failed to delete column" };
   }
 } 
