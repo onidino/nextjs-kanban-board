@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { AssigneeSelect } from '@/components/assignee-select';
 import { type Task as TaskType } from '@/lib/db/schema';
+import { type Task as TaskWithAssignee } from '@/components/assignee-select';
 import { Button } from '@/components/ui/button';
 import { PencilIcon } from 'lucide-react';
 import { TaskDialog } from '@/components/task-dialog';
@@ -38,11 +39,11 @@ export function Task({ task }: TaskProps) {
     }
   };
 
-  const handleTaskUpdate = (updatedTask: any) => {
+  const handleTaskUpdate = (updatedTask: TaskWithAssignee) => {
     setCurrentTask(prev => ({
       ...prev,
       title: updatedTask.title,
-      description: updatedTask.description || '',
+      description: updatedTask.description,
       assignee: updatedTask.assignee.name
     }));
   };

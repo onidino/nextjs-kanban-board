@@ -11,7 +11,11 @@ export async function Board() {
     if (columnsError || tasksError) {
       return (
         <div className="flex h-full w-full items-center justify-center">
-          <p className="text-red-500">Error loading board data</p>
+          <div className="text-center">
+            <p className="text-red-500 font-medium">Error loading board data</p>
+            {columnsError && <p className="text-sm text-red-400 mt-1">{columnsError}</p>}
+            {tasksError && <p className="text-sm text-red-400 mt-1">{tasksError}</p>}
+          </div>
         </div>
       );
     }
