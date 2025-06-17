@@ -21,60 +21,80 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { createColumn } from "@/lib/actions/board"
+import { createColumn, updateColumn } from "@/lib/actions/board"
 import { toast } from "sonner"
+import { type Column } from "@/lib/db/schema"
 
-const columnFormSchema = z.object({
+const formSchema = z.object({
   title: z.string().min(1, "Title is required").max(255, "Title is too long"),
 })
 
-type ColumnFormValues = z.infer<typeof columnFormSchema>
+type ColumnFormValues = z.infer<typeof formSchema>
 
 interface ColumnDialogProps {
+  column?: Column
+  onColumnUpdate?: (column: Column) => void
   trigger?: React.ReactNode
 }
 
-export function ColumnDialog({ trigger }: ColumnDialogProps) {
+export function ColumnDialog({ column, onColumnUpdate, trigger }: ColumnDialogProps) {
   const [open, setOpen] = React.useState(false)
 
   const form = useForm<ColumnFormValues>({
-    resolver: zodResolver(columnFormSchema),
+    resolver: zodResolver(formSchema),
     defaultValues: {
-      title: "",
+      title: column?.title || "",
     },
   })
 
-  // Reset form when dialog opens/closes
+  // Reset form when dialog opens/closes or column changes
   React.useEffect(() => {
-    if (!open) {
+    if (open) {
       form.reset({
-        title: "",
+        title: column?.title || "",
       });
     }
-  }, [open, form]);
+  }, [open, column, form]);
 
   const handleSubmit = async (values: ColumnFormValues) => {
     try {
-      const { error } = await createColumn(values)
-      if (error) {
-        toast.error(error)
-        return
+      if (column) {
+        const updatedColumn = await updateColumn(column.id, values);
+
+        if (updatedColumn.error) {
+          throw new Error(updatedColumn.error);
+        }
+
+        if (updatedColumn.data && onColumnUpdate) {
+          onColumnUpdate(updatedColumn.data);
+        }
+
+        toast.success("Column updated successfully");
+      } else {
+        const newColumn = await createColumn(values);
+
+        if (newColumn.error) {
+          throw new Error(newColumn.error);
+        }
+
+        toast.success("Column created successfully");
       }
-      toast.success("Column created successfully")
-      setOpen(false)
+
+      setOpen(false);
     } catch (error) {
-      toast.error("Something went wrong")
+      console.error("Error saving column:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to save column");
     }
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {trigger || <Button variant="outline">Create Column</Button>}
+        {trigger || <Button>Add Column</Button>}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create Column</DialogTitle>
+          <DialogTitle>{column ? "Edit Column" : "Add Column"}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
@@ -100,7 +120,7 @@ export function ColumnDialog({ trigger }: ColumnDialogProps) {
                 Cancel
               </Button>
               <Button type="submit">
-                Create Column
+                {column ? "Save Changes" : "Create Column"}
               </Button>
             </div>
           </form>
