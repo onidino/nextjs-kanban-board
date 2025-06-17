@@ -104,4 +104,19 @@ export async function updateTaskAssignee(taskId: number, assignee: string) {
   } catch (error) {
     return { data: null, error: "Failed to update task assignee" };
   }
+}
+
+export async function deleteTask(taskId: number) {
+  try {
+    // Delete the task
+    await db.delete(tasks).where(eq(tasks.id, taskId));
+
+    // Revalidate the board page
+    revalidatePath('/board/[boardId]', 'page');
+
+    return { error: null };
+  } catch (error) {
+    console.error('Error deleting task:', error);
+    return { error: 'Failed to delete task' };
+  }
 } 
