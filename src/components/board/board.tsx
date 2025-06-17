@@ -1,5 +1,3 @@
-'use server';
-
 import { getColumns, getTasks } from '@/lib/actions/board';
 import { Column, AddColumn } from '.';
 
