@@ -1,3 +1,4 @@
+# MAIN RULES
 - This is a Next.js 15 project using react 19.
 - The project is using Tailwind CSS for styling.
 - The project is using Shadcn UI for components.
@@ -6,5 +7,7 @@
 - It's Next.js so use Server Components when possibleAdd commentMore actions
 - Use server actions when possible
 - Use Next.js 15
-- If you are generating validation schemas, forms, actions, working with the db, then ALWAYS use the database from @lib/db/schema.ts as a SINGLE SOURCE OF TRUTH.
-- NEVER MODIFY OR REMOVE ANYTHING FROM THE DATABASE SCHEMA, UNLESS I EXPLICITLY TELL YOU TO DO SO.
+- Try to add actions to existing files that contain similar logic. If not found, create a new one.
+- Take into consideration the rules in /src/notepads/server-rules.md for server changes.
+- Take into consideration the rules in src/notepads/frontend-forms-notepad-rules.md for frontend changes.
+

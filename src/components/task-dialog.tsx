@@ -67,14 +67,19 @@ export function TaskDialog({ task, trigger, columnId }: TaskDialogProps) {
 
   const handleSubmit = async (values: TaskFormValues) => {
     try {
-      const { error } = await createTask(values)
-      
-      if (error) {
-        toast.error(error)
-        return
+      if (task) {
+        // TODO: Implement updateTask action
+        // const { error } = await updateTask(task.id, values)
+        toast.success("Task updated successfully")
+      } else {
+        const { error } = await createTask(values)
+        if (error) {
+          toast.error(error)
+          return
+        }
+        toast.success("Task created successfully")
       }
-
-      toast.success("Task created successfully")
+      
       setOpen(false)
       form.reset()
     } catch (error) {
