@@ -28,7 +28,7 @@ interface AssigneeSelectProps {
 export function AssigneeSelect({ task, onAssigneeChange }: AssigneeSelectProps) {
   return (
     <Select
-      defaultValue={task.assignee.name}
+      value={task.assignee.name}
       onValueChange={onAssigneeChange}
     >
       <SelectTrigger className="w-[140px]">

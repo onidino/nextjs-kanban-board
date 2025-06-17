@@ -77,7 +77,7 @@ export async function updateTask(taskId: number, values: TaskFormValues) {
       .where(eq(tasks.id, taskId))
       .returning();
 
-    // Revalidate the board page
+    // Revalidate the board page with specific path
     revalidatePath('/board/[boardId]', 'page');
 
     return { data: updatedTask, error: null };

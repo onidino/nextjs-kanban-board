@@ -30,7 +30,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { createTask } from "@/lib/actions/task"
+import { createTask, updateTask } from "@/lib/actions/task"
 import { toast } from "sonner"
 
 // Import assignees and types
@@ -39,7 +39,7 @@ import { assignees, type Assignee } from "@/lib/assignees"
 
 const taskFormSchema = z.object({
   title: z.string().min(1, "Title is required").max(255, "Title is too long"),
-  description: z.string().min(1, "Description is required").max(500, "Description is too long"),
+  description: z.string().max(500, "Description is too long").optional(),
   assignee: z.string().min(1, "Assignee is required"),
   columnId: z.number().min(1, "Column ID is required"),
 })
@@ -50,9 +50,10 @@ interface TaskDialogProps {
   task?: Task
   trigger?: React.ReactNode
   columnId: number
+  onTaskUpdate?: (updatedTask: Task) => void
 }
 
-export function TaskDialog({ task, trigger, columnId }: TaskDialogProps) {
+export function TaskDialog({ task, trigger, columnId, onTaskUpdate }: TaskDialogProps) {
   const [open, setOpen] = React.useState(false)
 
   const form = useForm<TaskFormValues>({
@@ -65,11 +66,38 @@ export function TaskDialog({ task, trigger, columnId }: TaskDialogProps) {
     },
   })
 
+  // Reset form when task changes or dialog opens
+  React.useEffect(() => {
+    if (task && open) {
+      form.reset({
+        title: task.title,
+        description: task.description || "",
+        assignee: task.assignee.name,
+        columnId: columnId,
+      });
+    }
+  }, [task, columnId, form, open]);
+
   const handleSubmit = async (values: TaskFormValues) => {
     try {
       if (task) {
-        // TODO: Implement updateTask action
-        // const { error } = await updateTask(task.id, values)
+        const { error, data } = await updateTask(task.id, values)
+        if (error) {
+          toast.error(error)
+          return
+        }
+        if (data && onTaskUpdate) {
+          const updatedTask = {
+            ...task,
+            title: data.title,
+            description: data.description || '',
+            assignee: {
+              name: data.assignee || '',
+              avatar: data.assignee ? data.assignee.split(' ').map(n => n[0]).join('') : ''
+            }
+          }
+          onTaskUpdate(updatedTask)
+        }
         toast.success("Task updated successfully")
       } else {
         const { error } = await createTask(values)
