@@ -36,10 +36,11 @@ import { toast } from "sonner"
 // Import assignees and types
 import { type Task } from "./assignee-select"
 import { assignees, type Assignee } from "@/lib/assignees"
+import { type Task as TaskType } from '@/lib/db/schema'
 
 const taskFormSchema = z.object({
   title: z.string().min(1, "Title is required").max(255, "Title is too long"),
-  description: z.string().max(500, "Description is too long").optional(),
+  description: z.string().min(1, "Description is required").max(500, "Description is too long"),
   assignee: z.string().min(1, "Assignee is required"),
   columnId: z.number().min(1, "Column ID is required"),
 })
@@ -51,9 +52,10 @@ interface TaskDialogProps {
   trigger?: React.ReactNode
   columnId: number
   onTaskUpdate?: (updatedTask: Task) => void
+  onTaskCreate?: (task: TaskType) => void
 }
 
-export function TaskDialog({ task, trigger, columnId, onTaskUpdate }: TaskDialogProps) {
+export function TaskDialog({ task, trigger, columnId, onTaskUpdate, onTaskCreate }: TaskDialogProps) {
   const [open, setOpen] = React.useState(false)
 
   const form = useForm<TaskFormValues>({
@@ -73,6 +75,14 @@ export function TaskDialog({ task, trigger, columnId, onTaskUpdate }: TaskDialog
         title: task.title,
         description: task.description || "",
         assignee: task.assignee.name,
+        columnId: columnId,
+      });
+    } else if (!open) {
+      // Reset form when dialog closes
+      form.reset({
+        title: "",
+        description: "",
+        assignee: "",
         columnId: columnId,
       });
     }
@@ -100,10 +110,13 @@ export function TaskDialog({ task, trigger, columnId, onTaskUpdate }: TaskDialog
         }
         toast.success("Task updated successfully")
       } else {
-        const { error } = await createTask(values)
+        const { error, data } = await createTask(values)
         if (error) {
           toast.error(error)
           return
+        }
+        if (data && onTaskCreate) {
+          onTaskCreate(data)
         }
         toast.success("Task created successfully")
       }

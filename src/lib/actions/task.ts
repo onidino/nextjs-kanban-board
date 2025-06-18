@@ -119,4 +119,46 @@ export async function deleteTask(taskId: number) {
     console.error('Error deleting task:', error);
     return { error: 'Failed to delete task' };
   }
+}
+
+export async function moveTask(taskId: number, targetColumnId: number) {
+  try {
+    // Use a transaction to ensure atomicity
+    return await db.transaction(async (tx) => {
+      // Get the highest order in the target column
+      const existingTasks = await tx
+        .select()
+        .from(tasks)
+        .where(eq(tasks.columnId, targetColumnId))
+        .orderBy(tasks.order);
+
+      // Calculate the new order (highest order + 10, or 0 if no tasks)
+      // Using increments of 10 to leave room for future reordering
+      const newOrder = existingTasks.length > 0 
+        ? Math.max(...existingTasks.map(t => t.order)) + 10 
+        : 0;
+
+      // Update the task with the new column and order
+      const [movedTask] = await tx
+        .update(tasks)
+        .set({
+          columnId: targetColumnId,
+          order: newOrder,
+        })
+        .where(eq(tasks.id, taskId))
+        .returning();
+
+      if (!movedTask) {
+        throw new Error("Task not found");
+      }
+
+      // Revalidate the board page
+      revalidatePath('/', 'page');
+
+      return { data: movedTask, error: null };
+    });
+  } catch (error) {
+    console.error('Error moving task:', error);
+    return { data: null, error: error instanceof Error ? error.message : "Failed to move task" };
+  }
 } 

@@ -46,6 +46,34 @@ export function Board({ columns: initialColumns, onColumnCreate, onColumnDelete 
     setColumns(initialColumns);
   }, [initialColumns]);
 
+  const handleTaskMove = (taskId: number, targetColumnId: number) => {
+    setTasks(prevTasks => 
+      prevTasks.map(task => 
+        task.id === taskId 
+          ? { ...task, columnId: targetColumnId }
+          : task
+      )
+    );
+  };
+
+  const handleTaskCreate = (newTask: TaskType) => {
+    setTasks(prevTasks => [...prevTasks, newTask]);
+  };
+
+  const handleTaskDelete = (taskId: number) => {
+    setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
+  };
+
+  const handleTaskUpdate = (updatedTask: TaskType) => {
+    setTasks(prevTasks => 
+      prevTasks.map(task => 
+        task.id === updatedTask.id 
+          ? updatedTask
+          : task
+      )
+    );
+  };
+
   if (isLoading) {
     return (
       <div className="flex h-full w-full items-center justify-center">
@@ -73,6 +101,11 @@ export function Board({ columns: initialColumns, onColumnCreate, onColumnDelete 
             column={column}
             tasks={tasks?.filter((task) => task.columnId === column.id) || []}
             onDelete={onColumnDelete}
+            availableColumns={columns}
+            onTaskMove={handleTaskMove}
+            onTaskCreate={handleTaskCreate}
+            onTaskDelete={handleTaskDelete}
+            onTaskUpdate={handleTaskUpdate}
           />
         ))}
       </div>

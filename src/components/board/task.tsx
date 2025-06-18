@@ -3,10 +3,10 @@
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { AssigneeSelect } from '@/components/assignee-select';
-import { type Task as TaskType } from '@/lib/db/schema';
+import { type Task as TaskType, type Column as ColumnType } from '@/lib/db/schema';
 import { type Task as TaskWithAssignee } from '@/components/assignee-select';
 import { Button } from '@/components/ui/button';
-import { PencilIcon, MoreVerticalIcon, Trash2Icon } from 'lucide-react';
+import { PencilIcon, MoreVerticalIcon, Trash2Icon, ArrowRightIcon } from 'lucide-react';
 import { TaskDialog } from '@/components/task-dialog';
 import { useState } from 'react';
 import {
@@ -14,6 +14,10 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuPortal,
 } from '@/components/ui/dropdown-menu';
 import {
   AlertDialog,
@@ -26,15 +30,18 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-import { updateTask, updateTaskAssignee, deleteTask } from '@/lib/actions/task';
+import { updateTask, updateTaskAssignee, deleteTask, moveTask } from '@/lib/actions/task';
 import { toast } from 'sonner';
 
 interface TaskProps {
   task: TaskType;
   onDelete?: (taskId: number) => void;
+  availableColumns?: ColumnType[];
+  onTaskMove?: (taskId: number, targetColumnId: number) => void;
+  onTaskUpdate?: (task: TaskType) => void;
 }
 
-export function Task({ task, onDelete }: TaskProps) {
+export function Task({ task, onDelete, availableColumns = [], onTaskMove, onTaskUpdate }: TaskProps) {
   const [currentTask, setCurrentTask] = useState(task);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
@@ -53,17 +60,21 @@ export function Task({ task, onDelete }: TaskProps) {
     if (error) {
       toast.error(error);
     } else {
-      setCurrentTask(prev => ({ ...prev, assignee }));
+      const updatedTask = { ...currentTask, assignee };
+      setCurrentTask(updatedTask);
+      onTaskUpdate?.(updatedTask);
     }
   };
 
   const handleTaskUpdate = (updatedTask: TaskWithAssignee) => {
-    setCurrentTask(prev => ({
-      ...prev,
+    const newTask = {
+      ...currentTask,
       title: updatedTask.title,
       description: updatedTask.description,
       assignee: updatedTask.assignee.name
-    }));
+    };
+    setCurrentTask(newTask);
+    onTaskUpdate?.(newTask);
   };
 
   const handleDeleteTask = async () => {
@@ -80,6 +91,26 @@ export function Task({ task, onDelete }: TaskProps) {
       toast.error(error instanceof Error ? error.message : 'Failed to delete task');
     } finally {
       setShowDeleteDialog(false);
+    }
+  };
+
+  const handleMoveTask = async (targetColumnId: number) => {
+    try {
+      const { error, data } = await moveTask(currentTask.id, targetColumnId);
+      if (error) {
+        throw new Error(error);
+      }
+      
+      if (!data) {
+        throw new Error('Failed to move task: No data returned');
+      }
+      
+      toast.success('Task moved successfully');
+      // Update local state through the callback
+      onTaskMove?.(currentTask.id, targetColumnId);
+    } catch (error) {
+      console.error('Error moving task:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to move task');
     }
   };
       
@@ -111,6 +142,26 @@ export function Task({ task, onDelete }: TaskProps) {
                     </DropdownMenuItem>
                   }
                 />
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <ArrowRightIcon className="mr-2 h-4 w-4" />
+                    Move to
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuPortal>
+                    <DropdownMenuSubContent>
+                      {availableColumns
+                        .filter(column => column.id !== currentTask.columnId)
+                        .map(column => (
+                          <DropdownMenuItem
+                            key={column.id}
+                            onSelect={() => handleMoveTask(column.id)}
+                          >
+                            {column.title}
+                          </DropdownMenuItem>
+                        ))}
+                    </DropdownMenuSubContent>
+                  </DropdownMenuPortal>
+                </DropdownMenuSub>
                 <DropdownMenuItem
                   className="text-destructive focus:text-destructive"
                   onSelect={() => setShowDeleteDialog(true)}
