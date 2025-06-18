@@ -31,9 +31,14 @@ interface ColumnProps {
   column: ColumnType;
   tasks: TaskType[];
   onDelete?: (columnId: number) => void;
+  availableColumns?: ColumnType[];
+  onTaskMove?: (taskId: number, targetColumnId: number) => void;
+  onTaskCreate?: (task: TaskType) => void;
+  onTaskDelete?: (taskId: number) => void;
+  onTaskUpdate?: (task: TaskType) => void;
 }
 
-export function Column({ column: initialColumn, tasks, onDelete }: ColumnProps) {
+export function Column({ column: initialColumn, tasks, onDelete, availableColumns = [], onTaskMove, onTaskCreate, onTaskDelete, onTaskUpdate }: ColumnProps) {
   const [column, setColumn] = useState(initialColumn);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -103,10 +108,17 @@ export function Column({ column: initialColumn, tasks, onDelete }: ColumnProps) 
         </div>
         <div className="flex flex-1 flex-col gap-2 overflow-y-auto">
           {tasks.map((task) => (
-            <Task key={task.id} task={task} />
+            <Task 
+              key={task.id} 
+              task={task} 
+              onDelete={onTaskDelete}
+              availableColumns={availableColumns}
+              onTaskMove={onTaskMove}
+              onTaskUpdate={onTaskUpdate}
+            />
           ))}
         </div>
-        <AddTask columnId={column.id} />
+        <AddTask columnId={column.id} onTaskCreate={onTaskCreate} />
       </Card>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
